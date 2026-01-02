@@ -4,6 +4,6 @@ final class HomeBuilder {
     func build() -> HomeVC {
         let vm = HomeVM()
         
-        return HomeVM(vm: vm)
+        return HomeVC(vm: vm)
     }
 }

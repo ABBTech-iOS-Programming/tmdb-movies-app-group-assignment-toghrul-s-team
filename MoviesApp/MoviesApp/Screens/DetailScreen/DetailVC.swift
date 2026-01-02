@@ -10,6 +10,8 @@ final class DetailVC: UIViewController {
     init(vm: DetailVM) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
+        view.backgroundColor = .blue
+
     }
     
     required init?(coder: NSCoder) {
