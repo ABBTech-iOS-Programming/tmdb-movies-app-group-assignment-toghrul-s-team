@@ -9,6 +9,7 @@ final class WatchlistVC: UIViewController {
     init(vm: WatchlistVM) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
+        view.backgroundColor = .green
     }
     
     required init?(coder: NSCoder) {

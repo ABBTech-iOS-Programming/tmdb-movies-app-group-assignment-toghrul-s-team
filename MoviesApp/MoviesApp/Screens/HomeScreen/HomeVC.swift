@@ -10,6 +10,7 @@ class HomeVC: UIViewController {
     init(vm: HomeVM) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
+        view.backgroundColor = .red
     }
     
     required init?(coder: NSCoder) {
