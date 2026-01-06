@@ -1,24 +1,17 @@
-//
-//  MainTabBarController.swift
-//  MoviesApp
-//
-//  Created by Toghrul Guluzadeh on 02.01.26.
-//
+import SnapKit
 import UIKit
 
 final class MainTabBarController: UITabBarController {
-
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabs()
         setupAppearance()
+        addTopSeparator()
     }
-    
+
     private func setupTabs() {
         let homeVC = HomeBuilder().build()
-//        let searchVC = SearchVC()
-        //added like this to prevent compiler err for now
-        let searchVC = WatchlistBuilder().build()
+        let searchVC = SearchBuilder().build()
         let watchListVC = WatchlistBuilder().build()
 
         let homeNav = UINavigationController(rootViewController: homeVC)
@@ -45,13 +38,23 @@ final class MainTabBarController: UITabBarController {
 
         viewControllers = [homeNav, searchNav, watchNav]
     }
-    
+
     private func setupAppearance() {
-        tabBar.tintColor = .systemBlue
-        tabBar.unselectedItemTintColor = .lightGray
-        tabBar.barTintColor = .black
+        tabBar.tintColor = UIColor(named: "activeColor")
+        tabBar.unselectedItemTintColor = UIColor(named: "tintColor")
+        tabBar.backgroundColor = UIColor(named: "bgColor")
         tabBar.isTranslucent = false
     }
 
+    private func addTopSeparator() {
+        let separator = UIView()
+        separator.backgroundColor = UIColor(named: "activeColor")
+        tabBar.addSubview(separator)
 
+        separator.snp.makeConstraints { make in
+            make.top.equalTo(tabBar.snp.top)
+            make.leading.trailing.equalToSuperview()
+            make.height.equalTo(2)
+        }
+    }
 }

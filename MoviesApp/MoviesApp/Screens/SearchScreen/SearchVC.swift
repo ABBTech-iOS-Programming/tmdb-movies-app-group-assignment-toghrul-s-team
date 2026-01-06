@@ -1,29 +1,23 @@
-import SnapKit
 import UIKit
+import SnapKit
 
-final class WatchlistVC: UIViewController {
-    private let vm: WatchlistVM
+final class SearchVC: UIViewController {
 
-    private lazy var tableView: UITableView = {
-        let tv = UITableView()
-        tv.dataSource = self
-        tv.delegate = self
-        tv.register(WatchListTVC.self, forCellReuseIdentifier: WatchListTVC.reuseIdentifier)
-        return tv
-    }()
+    let vm: SearchVM
+
+    private lazy var searchBar = CustomSearchBar()
 
     private let noFimStackView: UIStackView = {
         let sv = UIStackView()
-        sv.alignment = .center
         sv.axis = .vertical
+        sv.alignment = .center
         sv.spacing = 12
-        
         return sv
     }()
 
     private let noFilmImage: UIImageView = {
         let image = UIImageView()
-        image.image = UIImage(named: "no-watchlist")
+        image.image = UIImage(named: "no-search")
         image.contentMode = .scaleAspectFit
         return image
     }()
@@ -32,14 +26,15 @@ final class WatchlistVC: UIViewController {
         let lbl = UILabel()
         lbl.font = UIFont(name: "Montserrat-SemiBold", size: 20)
         lbl.numberOfLines = 0
-        lbl.text = "There is no movie yet!".capitalized
         lbl.textAlignment = .center
         lbl.textColor = UIColor(named: "thirdTextColor")
+        lbl.text = "we are sorry, we can\n not find the movie :(".capitalized
         return lbl
     }()
 
     private let noFilmSubLabel: UILabel = {
         let lbl = UILabel()
+
         let font = UIFont(name: "Montserrat-Medium", size: 15) ?? .systemFont(ofSize: 15)
         let lineHeight: CGFloat = 24
 
@@ -61,17 +56,10 @@ final class WatchlistVC: UIViewController {
 
         lbl.numberOfLines = 0
         lbl.textColor = UIColor(named: "subColor")
-
         return lbl
     }()
 
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        setupUI()
-    }
-
-    init(vm: WatchlistVM) {
+    init(vm: SearchVM) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
     }
@@ -81,53 +69,67 @@ final class WatchlistVC: UIViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        
+    }
+
     private func setupUI() {
         view.backgroundColor = UIColor(named: "bgColor")
         setupNav()
         addSubViews()
         setupConstraints()
+        
     }
 
     private func addSubViews() {
-        [noFilmImage, noFilmLabel, noFilmSubLabel].forEach(noFimStackView.addArrangedSubview)
+        view.addSubview(searchBar)
+
+        [noFilmImage, noFilmLabel, noFilmSubLabel]
+            .forEach(noFimStackView.addArrangedSubview)
+
         view.addSubview(noFimStackView)
     }
 
     private func setupConstraints() {
+
+        searchBar.snp.makeConstraints { make in
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(12)
+            make.leading.trailing.equalToSuperview().inset(16)
+            make.height.equalTo(48)
+        }
+
         noFimStackView.snp.makeConstraints { make in
             make.center.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(24)
         }
+
         noFilmImage.snp.makeConstraints { make in
-            make.height.equalTo(120)
-            make.width.equalTo(120)
+            make.width.height.equalTo(120)
         }
     }
 
     private func setupNav() {
         let chevronImage = UIImage(systemName: "chevron.left")
-        navigationItem.titleView = TitleLabel("Watch List")
 
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: chevronImage, style: .done, target: self, action: #selector(goBack))
-        navigationItem.leftBarButtonItem?.tintColor = UIColor(named: "thirdTextColor") ?? .white
+        navigationItem.titleView = TitleLabel("Search")
+
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: chevronImage,
+            style: .done,
+            target: self,
+            action: #selector(goBack)
+        )
+
+        navigationItem.leftBarButtonItem?.tintColor =
+            UIColor(named: "thirdTextColor") ?? .white
     }
 
     @objc private func goBack() {
         tabBarController?.selectedIndex = 0
     }
-}
 
-extension WatchlistVC: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        1
-    }
-
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: WatchListTVC.reuseIdentifier, for: indexPath) as? WatchListTVC
-        guard let cell else { return UITableViewCell() }
-
-        return cell
+    private func showEmptyState(_ show: Bool) {
+        noFimStackView.isHidden = !show
     }
 }
-
-extension WatchlistVC: UITableViewDelegate {}
