@@ -1,11 +1,17 @@
-import UIKit
 import SnapKit
+import UIKit
 
 final class SearchVC: UIViewController {
-
     let vm: SearchVM
 
     private lazy var searchBar = CustomSearchBar()
+    private lazy var searchTableView: UITableView = {
+        let tv = UITableView()
+        tv.backgroundColor = .clear
+        tv.register(SearchTableViewCell.self, forCellReuseIdentifier: SearchTableViewCell.reuseIdentifier)
+        tv.dataSource = self
+        return tv
+    }()
 
     private let noFimStackView: UIStackView = {
         let sv = UIStackView()
@@ -72,15 +78,15 @@ final class SearchVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        
+        bindVM()
     }
 
     private func setupUI() {
         view.backgroundColor = UIColor(named: "bgColor")
         setupNav()
+        searchBar.delegate = self
         addSubViews()
         setupConstraints()
-        
     }
 
     private func addSubViews() {
@@ -90,10 +96,10 @@ final class SearchVC: UIViewController {
             .forEach(noFimStackView.addArrangedSubview)
 
         view.addSubview(noFimStackView)
+        view.addSubview(searchTableView)
     }
 
     private func setupConstraints() {
-
         searchBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(12)
             make.leading.trailing.equalToSuperview().inset(16)
@@ -106,6 +112,10 @@ final class SearchVC: UIViewController {
 
         noFilmImage.snp.makeConstraints { make in
             make.width.height.equalTo(120)
+        }
+        searchTableView.snp.makeConstraints { make in
+            make.top.equalTo(searchBar.snp.bottom).offset(20)
+            make.leading.trailing.bottom.equalToSuperview().inset(24)
         }
     }
 
@@ -125,11 +135,82 @@ final class SearchVC: UIViewController {
             UIColor(named: "thirdTextColor") ?? .white
     }
 
+    private func bindVM() {
+//        vm.onLoading = { [weak self] isLoading in
+//            guard let self else { return }
+        // spinner ucun lazim olacaq
+        // isLoading ? spinner.startAnimating() : spinner.stopAnimating()
+//        }
+
+        vm.onResultsUpdated = { [weak self] in
+            guard let self else { return }
+
+            let hasData = !self.vm.searchedFilms.isEmpty
+
+            self.searchTableView.isHidden = !hasData
+            self.noFimStackView.isHidden = hasData
+
+            self.searchTableView.reloadData()
+        }
+
+        vm.onError = { error in
+            print("Error:", error)
+        }
+    }
+
     @objc private func goBack() {
         tabBarController?.selectedIndex = 0
     }
 
     private func showEmptyState(_ show: Bool) {
         noFimStackView.isHidden = !show
+    }
+}
+
+extension SearchVC: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        vm.searchedFilms.count
+    }
+
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: SearchTableViewCell.reuseIdentifier,
+            for: indexPath
+        ) as? SearchTableViewCell else {
+            return UITableViewCell()
+        }
+
+        let movie = vm.searchedFilms[indexPath.row]
+
+        cell.configure(
+            title: movie.title,
+            star: movie.voteAverage,
+            type: "Action",
+            date: movie.releaseDate,
+            duration: "139 Minutes"
+        )
+
+        if let url = vm.posterURL(for: movie) {
+            URLSession.shared.dataTask(with: url) { [weak tableView] data, _, _ in
+                guard let data,
+                      let image = UIImage(data: data) else { return }
+
+                DispatchQueue.main.async {
+                    if tableView?.indexPath(for: cell) == indexPath {
+                        cell.configureImage(image)
+                    }
+                }
+            }.resume()
+        }
+
+        return cell
+    }
+}
+
+extension SearchVC: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        vm.loadCategoricMovies(text: searchText)
     }
 }
