@@ -1,9 +1,10 @@
 import Foundation
-
-enum TrendingMoviesEndpoint: Endpoint {
-
-    case day
-    case week
+enum CategoricMoviesEndPoint: String, CaseIterable,Endpoint {
+    
+    case nowPlaying = "Now Playing"
+    case upcoming = "Upcoming"
+    case topRated = "Top Rated"
+    case popular = "Popular"
 
     var baseURL: String {
         NetworkConstants.baseURL
@@ -11,11 +12,15 @@ enum TrendingMoviesEndpoint: Endpoint {
 
     var path: String {
         switch self {
-        case .day:
-            //  "/3 lar burda olmali deyil normalda ancag patha qoyanda ishlemirdi"
-            return "/3/trending/movie/day"
-        case .week:
-            return "/3/trending/movie/week"
+        case .nowPlaying:
+            return "/3/movie/now_playing"
+        case .upcoming:
+            return "/3/movie/upcoming"
+        case .topRated:
+            return "/3/movie/top_rated"
+        case .popular:
+            return "/3/movie/popular"
+            
         }
     }
 

@@ -1,9 +1,11 @@
 import Foundation
 
-enum TrendingMoviesEndpoint: Endpoint {
+import Foundation
+enum SearchEndpoint: Endpoint {
 
-    case day
-    case week
+    
+    
+    case search(query: String)
 
     var baseURL: String {
         NetworkConstants.baseURL
@@ -11,11 +13,9 @@ enum TrendingMoviesEndpoint: Endpoint {
 
     var path: String {
         switch self {
-        case .day:
-            //  "/3 lar burda olmali deyil normalda ancag patha qoyanda ishlemirdi"
-            return "/3/trending/movie/day"
-        case .week:
-            return "/3/trending/movie/week"
+        case .search:
+            return "/3/search/movie"
+            
         }
     }
 
@@ -31,7 +31,10 @@ enum TrendingMoviesEndpoint: Endpoint {
     }
 
     var queryItems: [URLQueryItem]? {
-        nil
+        switch self {
+        case .search(let query):
+            return [URLQueryItem(name: "query", value: query)]
+        }
     }
 
     var HTTPBody: Encodable? {

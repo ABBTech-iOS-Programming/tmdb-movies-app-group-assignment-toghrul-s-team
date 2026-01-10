@@ -1,12 +1,10 @@
-//
-//  Movie.swift
-//  MoviesApp
-//
-//  Created by Toghrul Guluzadeh on 08.01.26.
-//
 import Foundation
 
-struct Movie: Decodable {
+struct MovieResponse: Decodable {
+    let results: [Movie]
+}
+
+struct Movie: Decodable,PosterPathProvidable {
 
     let id: Int
     let title: String
