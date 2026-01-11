@@ -1,13 +1,6 @@
-//
-//  WatchlistStorage.swift
-//  MoviesApp
-//
-//  Created by Toghrul Guluzadeh on 11.01.26.
-//
 import Foundation
 
 final class WatchlistStorage {
-
     static let shared = WatchlistStorage()
     private let key = "watchlist_movies"
 
@@ -17,6 +10,7 @@ final class WatchlistStorage {
         guard let data = UserDefaults.standard.data(forKey: key),
               let list = try? JSONDecoder().decode([MovieSummary].self, from: data)
         else { return [] }
+
         return list
     }
 
@@ -31,6 +25,7 @@ final class WatchlistStorage {
             item.id == movie.id
         }
         guard !alreadyExists else { return }
+
         list.append(movie)
         save(list)
     }

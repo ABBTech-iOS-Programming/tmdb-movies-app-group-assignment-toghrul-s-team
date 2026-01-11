@@ -4,7 +4,7 @@ final class SearchVM {
     private let networkService: NetworkService
     var searchedFilms: [CategoricMovie] = []
     var onLoading: ((Bool) -> ())?
-    var onResultsUpdated: (() -> Void)?
+    var onResultsUpdated: (() -> ())?
     var onError: ((String) -> ())?
     init(networkService: NetworkService = DefaultNetworkService()) {
         self.networkService = networkService
@@ -31,8 +31,10 @@ final class SearchVM {
                 }
         }
     }
+
     func posterURL<T: PosterPathProvidable>(for item: T) -> URL? {
         guard let path = item.posterPath else { return nil }
+
         return URL(string: "https://image.tmdb.org/t/p/w500\(path)")
     }
 }

@@ -1,7 +1,7 @@
 import SnapKit
 import UIKit
 
-class SearchTableViewCell: UITableViewCell {
+final class SearchTableViewCell: UITableViewCell {
     static let reuseIdentifier = String(describing: SearchTableViewCell.self)
     
     private let filmImage = UIImageView()

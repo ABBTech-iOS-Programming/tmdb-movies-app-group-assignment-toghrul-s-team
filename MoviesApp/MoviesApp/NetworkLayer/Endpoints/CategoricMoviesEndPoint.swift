@@ -1,6 +1,6 @@
 import Foundation
-enum CategoricMoviesEndPoint: String, CaseIterable,Endpoint {
-    
+
+enum CategoricMoviesEndPoint: String, CaseIterable, Endpoint {
     case nowPlaying = "Now Playing"
     case upcoming = "Upcoming"
     case topRated = "Top Rated"
@@ -20,7 +20,6 @@ enum CategoricMoviesEndPoint: String, CaseIterable,Endpoint {
             return "/3/movie/top_rated"
         case .popular:
             return "/3/movie/popular"
-            
         }
     }
 

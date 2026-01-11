@@ -2,7 +2,6 @@ import UIKit
 
 extension UILabel {
     func applyInnerShadow() {
-        // köhnə inner shadow-u sil
         layer.sublayers?
             .filter { $0.name == "innerShadow" }
             .forEach { $0.removeFromSuperlayer() }

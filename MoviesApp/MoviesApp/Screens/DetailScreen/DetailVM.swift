@@ -1,7 +1,6 @@
 import Foundation
 
 final class DetailVM {
-
     private let movieId: Int
     private let networkService: NetworkService
     private let watchlist = WatchlistStorage.shared
@@ -31,7 +30,7 @@ final class DetailVM {
             MovieDetailEndpoint.detail(id: movieId)
         ) { [weak self] (result: Result<MovieDetailResponse, NetworkError>) in
             guard let self else { return }
-            //main de olmayanda ayaga qalxan kimi error atir
+
             DispatchQueue.main.async {
                 self.onLoading?(false)
 
@@ -49,12 +48,18 @@ final class DetailVM {
     }
 
     func loadReviews() {
+        DispatchQueue.main.async {
+            self.onLoading?(true)
+        }
+
         networkService.request(
             MovieDetailEndpoint.reviews(id: movieId)
         ) { [weak self] (result: Result<ReviewResponse, NetworkError>) in
             guard let self else { return }
 
             DispatchQueue.main.async {
+                self.onLoading?(false)
+
                 switch result {
                 case .success(let response):
                     self.reviews = response.results

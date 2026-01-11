@@ -1,8 +1,7 @@
-import UIKit
 import SnapKit
+import UIKit
 
 final class FeaturedMovieCell: UICollectionViewCell {
-
     static let reuseIdentifier = String(describing: FeaturedMovieCell.self)
     private let posterImageView: UIImageView = {
         let iv = UIImageView()
@@ -22,13 +21,12 @@ final class FeaturedMovieCell: UICollectionViewCell {
         return lbl
     }()
 
-
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
     }
 
+    @available(*, unavailable)
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -61,6 +59,7 @@ final class FeaturedMovieCell: UICollectionViewCell {
             make.bottom.equalToSuperview().offset(20)
         }
     }
+
     func configure(image: UIImage?, index: Int) {
         posterImageView.image = image
 
@@ -74,5 +73,4 @@ final class FeaturedMovieCell: UICollectionViewCell {
             attributes: attributes
         )
     }
-
 }

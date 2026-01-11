@@ -21,7 +21,7 @@ struct Dates: Decodable {
     let minimum: String
 }
 
-struct CategoricMovie: Decodable,PosterPathProvidable {
+struct CategoricMovie: Decodable, PosterPathProvidable {
     let id: Int
     let title: String
     let originalTitle: String

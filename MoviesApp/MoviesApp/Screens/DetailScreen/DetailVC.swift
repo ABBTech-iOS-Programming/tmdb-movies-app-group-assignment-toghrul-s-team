@@ -1,11 +1,12 @@
-import UIKit
 import SnapKit
+import UIKit
 
 final class DetailVC: UIViewController {
-    
     private let vm: DetailVM
     private var currentDetail: MovieDetailResponse?
-    
+
+    private let spinner = UIActivityIndicatorView(style: .large)
+
     private let backButton: UIButton = {
         let btn = UIButton()
         btn.setImage(UIImage(systemName: "chevron.left"), for: .normal)
@@ -32,18 +33,20 @@ final class DetailVC: UIViewController {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
-    
+
     private let scrollView: UIScrollView = {
         let sv = UIScrollView()
         sv.showsVerticalScrollIndicator = false
+        
         return sv
     }()
 
     private let contentView: UIView = {
         let v = UIView()
+        
         return v
     }()
-    
+
     private let backdropImageView: UIImageView = {
         let iv = UIImageView()
         iv.contentMode = .scaleAspectFill
@@ -83,7 +86,6 @@ final class DetailVC: UIViewController {
     }()
 
     private let segmented: UISegmentedControl = {
-        //statik olsun
         let sc = UISegmentedControl(items: ["About", "Reviews"])
         sc.selectedSegmentIndex = 0
         return sc
@@ -108,10 +110,12 @@ final class DetailVC: UIViewController {
     init(vm: DetailVM) {
         self.vm = vm
         super.init(nibName: nil, bundle: nil)
+        hidesBottomBarWhenPushed = true
     }
 
-    required init?(coder: NSCoder){
-        fatalError("neyse")
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func viewDidLoad() {
@@ -131,12 +135,11 @@ final class DetailVC: UIViewController {
         reviewsTableView.dataSource = self
         backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
         bookmarkButton.addTarget(self, action: #selector(bookmarkTapped), for: .touchUpInside)
-
     }
+
     @objc private func backTapped() {
         navigationController?.popViewController(animated: true)
     }
-
 
     private func addSubviews() {
         view.addSubview(scrollView)
@@ -148,14 +151,14 @@ final class DetailVC: UIViewController {
             metaLabel,
             ratingLabel,
             segmented,
-            aboutLabel,reviewsTableView
+            aboutLabel, reviewsTableView
         ].forEach { contentView.addSubview($0) }
 
         view.addSubview(backButton)
         view.addSubview(topTitleLabel)
         view.addSubview(bookmarkButton)
+        view.addSubview(spinner)
     }
-
 
     private func setupConstraints() {
         backButton.snp.makeConstraints {
@@ -176,17 +179,20 @@ final class DetailVC: UIViewController {
         }
 
         scrollView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.horizontalEdges.bottom.equalToSuperview()
+            $0.top.equalToSuperview().offset(110)
+            
         }
 
         contentView.snp.makeConstraints {
-            $0.edges.equalToSuperview()
+            $0.top.equalTo(view.safeAreaLayoutGuide)
+            $0.leading.trailing.bottom.equalToSuperview()
             $0.width.equalToSuperview()
         }
 
         backdropImageView.snp.makeConstraints {
             $0.top.leading.trailing.equalToSuperview()
-            $0.height.equalTo(260)
+            $0.height.equalTo(320)
         }
 
         posterImageView.snp.makeConstraints {
@@ -212,6 +218,10 @@ final class DetailVC: UIViewController {
             $0.leading.equalTo(metaLabel)
         }
 
+        spinner.snp.makeConstraints {
+            $0.center.equalToSuperview()
+        }
+
         segmented.snp.makeConstraints {
             $0.top.equalTo(posterImageView.snp.bottom).offset(16)
             $0.leading.trailing.equalToSuperview().inset(16)
@@ -230,10 +240,16 @@ final class DetailVC: UIViewController {
         }
     }
 
-    
     private func bindVM() {
+        vm.onLoading = { [weak self] isLoading in
+            guard let self else { return }
+
+            isLoading ? self.spinner.startAnimating() : self.spinner.stopAnimating()
+        }
+
         vm.onDetailLoaded = { [weak self] detail in
             guard let self else { return }
+
             self.currentDetail = detail
             titleLabel.text = detail.title
             aboutLabel.text = detail.overview
@@ -243,7 +259,7 @@ final class DetailVC: UIViewController {
             let runtime = detail.runtime.map { "\($0) min" } ?? "-"
             let genres = detail.genres?
                 .map { $0.name }
-.joined(separator: ", ") ?? "-"
+                .joined(separator: ", ") ?? "-"
             metaLabel.text = "\(year) • \(runtime) • \(genres)"
 
             if let p = detail.posterPath {
@@ -255,7 +271,7 @@ final class DetailVC: UIViewController {
         }
 
         vm.onWatchlistStateChanged = { [weak self] isSaved in
-                    let name = isSaved ? "bookmark.fill" : "bookmark"
+            let name = isSaved ? "bookmark.fill" : "bookmark"
             self?.bookmarkButton
                 .setImage(
                     UIImage(
@@ -264,11 +280,11 @@ final class DetailVC: UIViewController {
                     for: .normal
                 )
         }
-        
+
         vm.onReviewsLoaded = { [weak self] _ in
             self?.reviewsTableView
                 .reloadData()
-                }
+        }
 
         vm.onError = { error in
             print(error)
@@ -276,10 +292,11 @@ final class DetailVC: UIViewController {
     }
 
     @objc private func bookmarkTapped() {
-            guard let detail = currentDetail else { return }
-            vm.toggleWatchlist(detail: detail)
-        }
-    
+        guard let detail = currentDetail else { return }
+
+        vm.toggleWatchlist(detail: detail)
+    }
+
     @objc private func segmentChanged() {
         let isAbout = segmented.selectedSegmentIndex == 0
         aboutLabel.isHidden = !isAbout
@@ -290,6 +307,7 @@ final class DetailVC: UIViewController {
         let url = URL(string: "https://image.tmdb.org/t/p/\(size)\(path)")!
         URLSession.shared.dataTask(with: url) { data, _, _ in
             guard let data, let img = UIImage(data: data) else { return }
+
             DispatchQueue.main.async { iv.image = img }
         }.resume()
     }

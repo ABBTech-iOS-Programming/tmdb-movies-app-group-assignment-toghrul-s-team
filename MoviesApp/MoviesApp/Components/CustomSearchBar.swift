@@ -1,8 +1,7 @@
-import UIKit
 import SnapKit
+import UIKit
 
 final class CustomSearchBar: UISearchBar {
-
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -36,9 +35,7 @@ final class CustomSearchBar: UISearchBar {
             leftIcon.tintColor = UIColor(named: "tintColor") ?? .systemGray3
         }
         textField.snp.makeConstraints { make in
-                make.edges.equalToSuperview()
+            make.edges.equalToSuperview()
         }
     }
-
-
 }

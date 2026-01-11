@@ -1,7 +1,7 @@
 import SnapKit
 import UIKit
 
-class CategoryCollectionViewCell: UICollectionViewCell {
+final class CategoryCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = String(describing: CategoryCollectionViewCell.self)
 
     private let nameLabel: UILabel = {
@@ -9,7 +9,7 @@ class CategoryCollectionViewCell: UICollectionViewCell {
         lbl.textColor = .white
         lbl.font = .boldSystemFont(ofSize: 20)
         lbl.textAlignment = .center
-        
+
         return lbl
     }()
 
@@ -58,7 +58,6 @@ class CategoryCollectionViewCell: UICollectionViewCell {
 
     func configure(text: String) {
         nameLabel.text = text
-        
     }
 
     override var isSelected: Bool {

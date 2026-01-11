@@ -1,9 +1,3 @@
-//
-//  MovieDetailResponse.swift
-//  MoviesApp
-//
-//  Created by Toghrul Guluzadeh on 11.01.26.
-//
 struct MovieDetailResponse: Decodable {
     let id: Int
     let title: String

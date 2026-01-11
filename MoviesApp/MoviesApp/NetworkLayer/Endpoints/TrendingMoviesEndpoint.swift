@@ -1,7 +1,6 @@
 import Foundation
 
 enum TrendingMoviesEndpoint: Endpoint {
-
     case day
     case week
 
@@ -12,7 +11,6 @@ enum TrendingMoviesEndpoint: Endpoint {
     var path: String {
         switch self {
         case .day:
-            //  "/3 lar burda olmali deyil normalda ancag patha qoyanda ishlemirdi"
             return "/3/trending/movie/day"
         case .week:
             return "/3/trending/movie/week"

@@ -1,10 +1,4 @@
-//
-//  MovieSummary.swift
-//  MoviesApp
-//
-//  Created by Toghrul Guluzadeh on 11.01.26.
-//
-struct MovieSummary: Codable, Equatable {
+struct MovieSummary: Codable, Equatable, PosterPathProvidable {
     let id: Int
     let title: String
     let posterPath: String?
