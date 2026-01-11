@@ -34,7 +34,9 @@ final class HomeVC: UIViewController {
         cv.backgroundColor = .clear
         cv.showsHorizontalScrollIndicator = false
         cv.dataSource = self
+        cv.delegate = self
         cv.tag = 0
+    
         cv.register(
             FeaturedMovieCell.self,
             forCellWithReuseIdentifier: FeaturedMovieCell.reuseIdentifier
@@ -73,6 +75,7 @@ final class HomeVC: UIViewController {
         cv.backgroundColor = .clear
         cv.showsHorizontalScrollIndicator = false
         cv.dataSource = self
+        cv.delegate = self
         cv.tag = 2
         cv.register(
             MainFilmsCollectionViewCell.self,
@@ -260,9 +263,24 @@ extension HomeVC: UICollectionViewDataSource {
 }
 extension HomeVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
         if collectionView.tag == 1 {
             vm.loadCategoricMovies(of: CategoricMoviesEndPoint.allCases[indexPath.item])
             mainFilmsCollectionView.reloadData()
+            return
         }
+        //helelik
+        let movieId: Int
+
+        if collectionView.tag == 0 {
+            movieId = vm.featuredMovies[indexPath.item].id
+        } else {
+            movieId = vm.nowPlayingMovies[indexPath.item].id
+        }
+
+        let detailVC = DetailBuilder.build(movieId: movieId)
+        navigationController?.pushViewController(detailVC, animated: true)
+
     }
+
 }

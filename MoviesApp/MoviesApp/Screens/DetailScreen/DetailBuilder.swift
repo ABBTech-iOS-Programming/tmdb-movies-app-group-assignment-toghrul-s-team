@@ -1,9 +1,8 @@
 import Foundation
 
-final class DetailBuilder{
-    func build() -> DetailVC {
-        let vm = DetailVM()
-        
+final class DetailBuilder {
+    static func build(movieId: Int) -> DetailVC {
+        let vm = DetailVM(movieId: movieId)
         return DetailVC(vm: vm)
     }
-}
+} 

@@ -2,132 +2,92 @@ import SnapKit
 import UIKit
 
 final class WatchlistVC: UIViewController {
-    private let vm: WatchlistVM
+
+    private let vm = WatchlistVM()
+    private var movies: [MovieSummary] = []
+
+    private let backButton: UIButton = {
+        let btn = UIButton()
+        btn.setImage(UIImage(systemName: "chevron.left"), for: .normal)
+        btn.tintColor = .white
+        return btn
+    }()
+
+    private let titleLabel: UILabel = {
+        let lbl = UILabel()
+        lbl.text = "Watch list"
+        lbl.textColor = .white
+        lbl.font = .boldSystemFont(ofSize: 18)
+        return lbl
+    }()
 
     private lazy var tableView: UITableView = {
         let tv = UITableView()
+        tv.backgroundColor = .clear
+        tv.separatorStyle = .none
         tv.dataSource = self
-        tv.delegate = self
-        tv.register(WatchListTVC.self, forCellReuseIdentifier: WatchListTVC.reuseIdentifier)
+        tv.register(WatchlistCell.self, forCellReuseIdentifier: "WatchlistCell")
         return tv
     }()
-
-    private let noFimStackView: UIStackView = {
-        let sv = UIStackView()
-        sv.alignment = .center
-        sv.axis = .vertical
-        sv.spacing = 12
-        
-        return sv
-    }()
-
-    private let noFilmImage: UIImageView = {
-        let image = UIImageView()
-        image.image = UIImage(named: "no-watchlist")
-        image.contentMode = .scaleAspectFit
-        return image
-    }()
-
-    private let noFilmLabel: UILabel = {
-        let lbl = UILabel()
-        lbl.font = UIFont(name: "Montserrat-SemiBold", size: 20)
-        lbl.numberOfLines = 0
-        lbl.text = "There is no movie yet!".capitalized
-        lbl.textAlignment = .center
-        lbl.textColor = UIColor(named: "thirdTextColor")
-        return lbl
-    }()
-
-    private let noFilmSubLabel: UILabel = {
-        let lbl = UILabel()
-        let font = UIFont(name: "Montserrat-Medium", size: 15) ?? .systemFont(ofSize: 15)
-        let lineHeight: CGFloat = 24
-
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.minimumLineHeight = lineHeight
-        paragraphStyle.maximumLineHeight = lineHeight
-        paragraphStyle.alignment = .center
-
-        let baselineOffset = (lineHeight - font.lineHeight) / 2
-
-        lbl.attributedText = NSAttributedString(
-            string: "Find your movie by Type title,\n categories, years, etc ",
-            attributes: [
-                .font: font,
-                .paragraphStyle: paragraphStyle,
-                .baselineOffset: baselineOffset
-            ]
-        )
-
-        lbl.numberOfLines = 0
-        lbl.textColor = UIColor(named: "subColor")
-
-        return lbl
-    }()
-
 
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
     }
 
-    init(vm: WatchlistVM) {
-        self.vm = vm
-        super.init(nibName: nil, bundle: nil)
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        movies = vm.fetchMovies()
+        tableView.reloadData()
     }
 
     private func setupUI() {
         view.backgroundColor = UIColor(named: "bgColor")
-        setupNav()
-        addSubViews()
+        addSubviews()
         setupConstraints()
     }
 
-    private func addSubViews() {
-        [noFilmImage, noFilmLabel, noFilmSubLabel].forEach(noFimStackView.addArrangedSubview)
-        view.addSubview(noFimStackView)
+    private func addSubviews() {
+        view.addSubview(backButton)
+        view.addSubview(titleLabel)
+        view.addSubview(tableView)
     }
 
     private func setupConstraints() {
-        noFimStackView.snp.makeConstraints { make in
-            make.center.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(24)
+        backButton.snp.makeConstraints {
+            $0.leading.equalToSuperview().offset(16)
+            $0.top.equalTo(view.safeAreaLayoutGuide).offset(8)
+            $0.size.equalTo(24)
         }
-        noFilmImage.snp.makeConstraints { make in
-            make.height.equalTo(120)
-            make.width.equalTo(120)
+
+        titleLabel.snp.makeConstraints {
+            $0.centerX.equalToSuperview()
+            $0.centerY.equalTo(backButton)
         }
-    }
 
-    private func setupNav() {
-        let chevronImage = UIImage(systemName: "chevron.left")
-        navigationItem.titleView = TitleLabel("Watch List")
-
-        navigationItem.leftBarButtonItem = UIBarButtonItem(image: chevronImage, style: .done, target: self, action: #selector(goBack))
-        navigationItem.leftBarButtonItem?.tintColor = UIColor(named: "thirdTextColor") ?? .white
-    }
-
-    @objc private func goBack() {
-        tabBarController?.selectedIndex = 0
+        tableView.snp.makeConstraints {
+            $0.top.equalTo(backButton.snp.bottom).offset(16)
+            $0.leading.trailing.bottom.equalToSuperview()
+        }
     }
 }
 
 extension WatchlistVC: UITableViewDataSource {
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        1
+        movies.count
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: WatchListTVC.reuseIdentifier, for: indexPath) as? WatchListTVC
-        guard let cell else { return UITableViewCell() }
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell {
 
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: "WatchlistCell",
+            for: indexPath
+        ) as? WatchlistCell else
+        {return UITableViewCell()}
+
+        cell.configure(with: movies[indexPath.row])
         return cell
     }
 }
-
-extension WatchlistVC: UITableViewDelegate {}
