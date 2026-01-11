@@ -1,6 +1,16 @@
 import Foundation
 
 final class WatchlistVM {
-    var films: [String] = []
-    
+
+    func fetchMovies() -> [MovieSummary] {
+        WatchlistStorage.shared.getAll()
+    }
+
+    func isSaved(movieId: Int) -> Bool {
+        WatchlistStorage.shared.isSaved(movieId: movieId)
+    }
+
+    func remove(movieId: Int) {
+        WatchlistStorage.shared.remove(movieId: movieId)
+    }
 }
