@@ -1,10 +1,8 @@
 import Foundation
 
 import Foundation
-enum SearchEndpoint: Endpoint {
 
-    
-    
+enum SearchEndpoint: Endpoint {
     case search(query: String)
 
     var baseURL: String {
@@ -15,7 +13,6 @@ enum SearchEndpoint: Endpoint {
         switch self {
         case .search:
             return "/3/search/movie"
-            
         }
     }
 

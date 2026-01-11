@@ -11,28 +11,28 @@ protocol Endpoint {
 
 extension Endpoint {
     func makeRequest() -> Result<URLRequest, NetworkError> {
-        
         guard var compotents = URLComponents(string: baseURL) else {
             return .failure(.invalidURL)
         }
+
         compotents.path = path
         compotents.queryItems = queryItems
-        
+
         guard let url = compotents.url else {
             return .failure(.invalidURL)
         }
-        
+
         var request = URLRequest(url: url)
-        
+
         request.httpMethod = method.rawValue
-        headers?.forEach({ (key: String, value: String) in
+        headers?.forEach { (key: String, value: String) in
             request.setValue(value, forHTTPHeaderField: key)
-        })
+        }
         if let HTTPBody {
             do {
                 let encodedData = try JSONEncoder().encode(HTTPBody)
                 request.httpBody = encodedData
-            } catch  {
+            } catch {
                 return .failure(.encodingError)
             }
         }

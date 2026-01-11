@@ -1,11 +1,11 @@
-import UIKit
 import SnapKit
-class MainFilmsCollectionViewCell: UICollectionViewCell {
+import UIKit
+
+final class MainFilmsCollectionViewCell: UICollectionViewCell {
     static let reuseIdentifier = String(describing: MainFilmsCollectionViewCell.self)
 
     private let filmImage: UIImageView = {
         let img = UIImageView()
-        img.image = UIImage(systemName: "plus")
         img.contentMode = .scaleAspectFill
         img.layer.cornerRadius = 16
         img.clipsToBounds = true
@@ -34,7 +34,6 @@ class MainFilmsCollectionViewCell: UICollectionViewCell {
 
     private func addSubviews() {
         contentView.addSubview(filmImage)
-        
     }
 
     private func setupConstraints() {
@@ -45,7 +44,5 @@ class MainFilmsCollectionViewCell: UICollectionViewCell {
 
     func configure(image: UIImage?) {
         filmImage.image = image
-        
     }
-
 }

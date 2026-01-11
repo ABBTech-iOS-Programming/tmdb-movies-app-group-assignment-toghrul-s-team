@@ -4,8 +4,7 @@ struct MovieResponse: Decodable {
     let results: [Movie]
 }
 
-struct Movie: Decodable,PosterPathProvidable {
-
+struct Movie: Decodable, PosterPathProvidable {
     let id: Int
     let title: String
     let posterPath: String?

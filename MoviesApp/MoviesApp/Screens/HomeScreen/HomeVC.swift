@@ -24,6 +24,27 @@ final class HomeVC: UIViewController {
 
     private lazy var searchBar = CustomSearchBar()
 
+    private lazy var searchTableView: UITableView = {
+        let tv = UITableView()
+        tv.backgroundColor = .clear
+        tv.register(SearchTableViewCell.self, forCellReuseIdentifier: SearchTableViewCell.reuseIdentifier)
+        tv.dataSource = self
+        tv.delegate = self
+        tv.isHidden = true
+        return tv
+    }()
+
+    private let emptyStateView: EmptyStateView = {
+        let view = EmptyStateView()
+        view.isHidden = true
+        view.configure(
+            imageName: "no-search",
+            title: "we are sorry, we can\n not find the movie :(",
+            subtitle: "Find your movie by Type title,\n categories, years, etc "
+        )
+        return view
+    }()
+
     private lazy var featuredCollectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
@@ -36,7 +57,7 @@ final class HomeVC: UIViewController {
         cv.dataSource = self
         cv.delegate = self
         cv.tag = 0
-    
+
         cv.register(
             FeaturedMovieCell.self,
             forCellWithReuseIdentifier: FeaturedMovieCell.reuseIdentifier
@@ -100,6 +121,7 @@ final class HomeVC: UIViewController {
         bindViewModel()
         vm.loadFeatured()
         vm.loadCategoricMovies(of: .nowPlaying)
+        updateUIState()
     }
 
     private func setupUI() {
@@ -117,6 +139,8 @@ final class HomeVC: UIViewController {
         view.addSubview(categoryCollectionView)
         view.addSubview(mainFilmsCollectionView)
         view.addSubview(spinner)
+        view.addSubview(emptyStateView)
+        view.addSubview(searchTableView)
     }
 
     private func addConstraints() {
@@ -154,6 +178,15 @@ final class HomeVC: UIViewController {
             make.horizontalEdges.equalToSuperview()
             make.bottom.equalToSuperview().offset(20)
         }
+
+        searchTableView.snp.makeConstraints { make in
+            make.top.equalTo(searchBar.snp.bottom).offset(20)
+            make.leading.trailing.bottom.equalToSuperview().inset(24)
+        }
+
+        emptyStateView.snp.makeConstraints { make in
+            make.center.equalToSuperview()
+        }
     }
 
     private func bindViewModel() {
@@ -169,14 +202,59 @@ final class HomeVC: UIViewController {
         vm.onNowPlayingUpdated = { [weak self] in
             self?.mainFilmsCollectionView.reloadData()
         }
-        
+
+        vm.onResultsUpdated = { [weak self] in
+            guard let self else { return }
+
+            self.updateUIState()
+        }
+
         vm.onError = { error in
             print("Error:", error)
         }
     }
+
+    private func updateUIState() {
+        let searchText = searchBar.text ?? ""
+        let hasData = !vm.searchedFilms.isEmpty
+
+        if searchText.isEmpty {
+            showHomepageContent(true)
+            searchTableView.isHidden = true
+            emptyStateView.isHidden = true
+        } else {
+            showHomepageContent(false)
+            if hasData {
+                searchTableView.isHidden = false
+                emptyStateView.isHidden = true
+            } else {
+                searchTableView.isHidden = true
+                emptyStateView.isHidden = false
+            }
+        }
+
+        searchTableView.reloadData()
+    }
+
+    private func showHomepageContent(_ show: Bool) {
+        pageLabel.isHidden = !show
+        trendingLabel.isHidden = !show
+        featuredCollectionView.isHidden = !show
+        categoryCollectionView.isHidden = !show
+        mainFilmsCollectionView.isHidden = !show
+    }
 }
 
-extension HomeVC: UISearchBarDelegate {}
+extension HomeVC: UISearchBarDelegate {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        if searchText.isEmpty {
+            vm.searchedFilms = []
+            updateUIState()
+        } else {
+            vm.loadCategoricMovies(text: searchText)
+        }
+    }
+}
 
 extension HomeVC: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -223,8 +301,7 @@ extension HomeVC: UICollectionViewDataSource {
             }
 
             return cell
-        }
-        else if collectionView.tag == 1 {
+        } else if collectionView.tag == 1 {
             guard let cell = collectionView.dequeueReusableCell(
                 withReuseIdentifier: CategoryCollectionViewCell.reuseIdentifier,
                 for: indexPath
@@ -238,13 +315,14 @@ extension HomeVC: UICollectionViewDataSource {
             }
             return cell
         }
-        
+
         guard let cell = collectionView.dequeueReusableCell(
             withReuseIdentifier: MainFilmsCollectionViewCell.reuseIdentifier,
             for: indexPath
         ) as? MainFilmsCollectionViewCell else {
             return UICollectionViewCell()
         }
+
         let movie = vm.nowPlayingMovies[indexPath.item]
         if let url = vm.posterURL(for: movie) {
             URLSession.shared.dataTask(with: url) { data, _, _ in
@@ -261,15 +339,14 @@ extension HomeVC: UICollectionViewDataSource {
         return cell
     }
 }
+
 extension HomeVC: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
         if collectionView.tag == 1 {
             vm.loadCategoricMovies(of: CategoricMoviesEndPoint.allCases[indexPath.item])
             mainFilmsCollectionView.reloadData()
             return
         }
-        //helelik
         let movieId: Int
 
         if collectionView.tag == 0 {
@@ -280,7 +357,56 @@ extension HomeVC: UICollectionViewDelegate {
 
         let detailVC = DetailBuilder.build(movieId: movieId)
         navigationController?.pushViewController(detailVC, animated: true)
+    }
+}
 
+extension HomeVC: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        vm.searchedFilms.count
     }
 
+    func tableView(_ tableView: UITableView,
+                   cellForRowAt indexPath: IndexPath) -> UITableViewCell
+    {
+        guard let cell = tableView.dequeueReusableCell(
+            withIdentifier: SearchTableViewCell.reuseIdentifier,
+            for: indexPath
+        ) as? SearchTableViewCell else {
+            return UITableViewCell()
+        }
+
+        let movie = vm.searchedFilms[indexPath.row]
+
+        cell.configure(
+            title: movie.title,
+            star: movie.voteAverage,
+            type: "Action",
+            date: movie.releaseDate,
+            duration: "139 Minutes"
+        )
+
+        if let url = vm.posterURL(for: movie) {
+            URLSession.shared.dataTask(with: url) { [weak tableView] data, _, _ in
+                guard let data,
+                      let image = UIImage(data: data) else { return }
+
+                DispatchQueue.main.async {
+                    if tableView?.indexPath(for: cell) == indexPath {
+                        cell.configureImage(image)
+                    }
+                }
+            }.resume()
+        }
+
+        return cell
+    }
+}
+
+extension HomeVC: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let movieId = vm.searchedFilms[indexPath.row].id
+        let detailVC = DetailBuilder.build(movieId: movieId)
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
 }

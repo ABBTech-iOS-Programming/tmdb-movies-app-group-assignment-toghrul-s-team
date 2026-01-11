@@ -1,9 +1,3 @@
-//
-//  MovieDetailEndpoint.swift
-//  MoviesApp
-//
-//  Created by Toghrul Guluzadeh on 11.01.26.
-//
 import Foundation
 
 enum MovieDetailEndpoint {
@@ -12,7 +6,6 @@ enum MovieDetailEndpoint {
 }
 
 extension MovieDetailEndpoint: Endpoint {
-
     var baseURL: String {
         NetworkConstants.baseURL
     }
@@ -30,7 +23,7 @@ extension MovieDetailEndpoint: Endpoint {
         .get
     }
 
-    var headers: [String : String]? {
+    var headers: [String: String]? {
         [
             "Authorization": "Bearer \(NetworkConstants.accessToken)",
             "Content-Type": "application/json"

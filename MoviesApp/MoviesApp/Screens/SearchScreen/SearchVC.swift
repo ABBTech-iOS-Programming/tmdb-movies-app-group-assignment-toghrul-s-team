@@ -4,65 +4,36 @@ import UIKit
 final class SearchVC: UIViewController {
     let vm: SearchVM
 
+    private let spinner = UIActivityIndicatorView(style: .large)
+
     private lazy var searchBar = CustomSearchBar()
     private lazy var searchTableView: UITableView = {
         let tv = UITableView()
         tv.backgroundColor = .clear
         tv.register(SearchTableViewCell.self, forCellReuseIdentifier: SearchTableViewCell.reuseIdentifier)
         tv.dataSource = self
+        tv.delegate = self
         return tv
     }()
 
-    private let noFimStackView: UIStackView = {
-        let sv = UIStackView()
-        sv.axis = .vertical
-        sv.alignment = .center
-        sv.spacing = 12
-        return sv
-    }()
-
-    private let noFilmImage: UIImageView = {
-        let image = UIImageView()
-        image.image = UIImage(named: "no-search")
-        image.contentMode = .scaleAspectFit
-        return image
-    }()
-
-    private let noFilmLabel: UILabel = {
+    private let defaultLabel: UILabel = {
         let lbl = UILabel()
-        lbl.font = UIFont(name: "Montserrat-SemiBold", size: 20)
+        lbl.font = UIFont(name: "Montserrat-Medium", size: 16) ?? .systemFont(ofSize: 16)
         lbl.numberOfLines = 0
         lbl.textAlignment = .center
         lbl.textColor = UIColor(named: "thirdTextColor")
-        lbl.text = "we are sorry, we can\n not find the movie :(".capitalized
+        lbl.text = "Find your movie by Type title,\n categories, years, etc"
         return lbl
     }()
 
-    private let noFilmSubLabel: UILabel = {
-        let lbl = UILabel()
-
-        let font = UIFont(name: "Montserrat-Medium", size: 15) ?? .systemFont(ofSize: 15)
-        let lineHeight: CGFloat = 24
-
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.minimumLineHeight = lineHeight
-        paragraphStyle.maximumLineHeight = lineHeight
-        paragraphStyle.alignment = .center
-
-        let baselineOffset = (lineHeight - font.lineHeight) / 2
-
-        lbl.attributedText = NSAttributedString(
-            string: "Find your movie by Type title,\n categories, years, etc ",
-            attributes: [
-                .font: font,
-                .paragraphStyle: paragraphStyle,
-                .baselineOffset: baselineOffset
-            ]
+    private let emptyStateView: EmptyStateView = {
+        let view = EmptyStateView()
+        view.configure(
+            imageName: "no-search",
+            title: "we are sorry, we can\n not find the movie :(",
+            subtitle: "Find your movie by Type title,\n categories, years, etc "
         )
-
-        lbl.numberOfLines = 0
-        lbl.textColor = UIColor(named: "subColor")
-        return lbl
+        return view
     }()
 
     init(vm: SearchVM) {
@@ -79,6 +50,12 @@ final class SearchVC: UIViewController {
         super.viewDidLoad()
         setupUI()
         bindVM()
+        updateUIState()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     private func setupUI() {
@@ -91,12 +68,10 @@ final class SearchVC: UIViewController {
 
     private func addSubViews() {
         view.addSubview(searchBar)
-
-        [noFilmImage, noFilmLabel, noFilmSubLabel]
-            .forEach(noFimStackView.addArrangedSubview)
-
-        view.addSubview(noFimStackView)
+        view.addSubview(defaultLabel)
+        view.addSubview(emptyStateView)
         view.addSubview(searchTableView)
+        view.addSubview(spinner)
     }
 
     private func setupConstraints() {
@@ -106,16 +81,21 @@ final class SearchVC: UIViewController {
             make.height.equalTo(48)
         }
 
-        noFimStackView.snp.makeConstraints { make in
+        defaultLabel.snp.makeConstraints { make in
             make.center.equalToSuperview()
+            make.leading.trailing.equalToSuperview().inset(24)
         }
 
-        noFilmImage.snp.makeConstraints { make in
-            make.width.height.equalTo(120)
+        emptyStateView.snp.makeConstraints { make in
+            make.center.equalToSuperview()
         }
         searchTableView.snp.makeConstraints { make in
             make.top.equalTo(searchBar.snp.bottom).offset(20)
-            make.leading.trailing.bottom.equalToSuperview().inset(24)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
+
+        spinner.snp.makeConstraints { make in
+            make.center.equalToSuperview()
         }
     }
 
@@ -136,21 +116,16 @@ final class SearchVC: UIViewController {
     }
 
     private func bindVM() {
-//        vm.onLoading = { [weak self] isLoading in
-//            guard let self else { return }
-        // spinner ucun lazim olacaq
-        // isLoading ? spinner.startAnimating() : spinner.stopAnimating()
-//        }
+        vm.onLoading = { [weak self] isLoading in
+            guard let self else { return }
+
+            isLoading ? self.spinner.startAnimating() : self.spinner.stopAnimating()
+        }
 
         vm.onResultsUpdated = { [weak self] in
             guard let self else { return }
 
-            let hasData = !self.vm.searchedFilms.isEmpty
-
-            self.searchTableView.isHidden = !hasData
-            self.noFimStackView.isHidden = hasData
-
-            self.searchTableView.reloadData()
+            self.updateUIState()
         }
 
         vm.onError = { error in
@@ -158,12 +133,31 @@ final class SearchVC: UIViewController {
         }
     }
 
-    @objc private func goBack() {
-        tabBarController?.selectedIndex = 0
+    private func updateUIState() {
+        let searchText = searchBar.text ?? ""
+        let hasData = !vm.searchedFilms.isEmpty
+
+        if searchText.isEmpty {
+            defaultLabel.isHidden = false
+            searchTableView.isHidden = true
+            emptyStateView.isHidden = true
+        } else {
+            if hasData {
+                defaultLabel.isHidden = true
+                searchTableView.isHidden = false
+                emptyStateView.isHidden = true
+            } else {
+                defaultLabel.isHidden = true
+                searchTableView.isHidden = true
+                emptyStateView.isHidden = false
+            }
+        }
+
+        searchTableView.reloadData()
     }
 
-    private func showEmptyState(_ show: Bool) {
-        noFimStackView.isHidden = !show
+    @objc private func goBack() {
+        tabBarController?.selectedIndex = 0
     }
 }
 
@@ -211,6 +205,20 @@ extension SearchVC: UITableViewDataSource {
 
 extension SearchVC: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        vm.loadCategoricMovies(text: searchText)
+        if searchText.isEmpty {
+            vm.searchedFilms = []
+            updateUIState()
+        } else {
+            vm.loadCategoricMovies(text: searchText)
+        }
+    }
+}
+
+extension SearchVC: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        let movieId = vm.searchedFilms[indexPath.row].id
+        let detailVC = DetailBuilder.build(movieId: movieId)
+        navigationController?.pushViewController(detailVC, animated: true)
     }
 }
