@@ -168,6 +168,18 @@ final class HomeVC: UIViewController {
         searchBar.delegate = self
         addSubVews()
         addConstraints()
+        closeKeyboardTapGesture()
+    }
+    private func  closeKeyboardTapGesture(){
+        let tap = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
     }
     
     private func addSubVews() {
@@ -194,7 +206,7 @@ final class HomeVC: UIViewController {
         }
         
         searchBar.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide)
+            make.top.equalTo(view.safeAreaLayoutGuide).offset(12)
             make.horizontalEdges.equalToSuperview().inset(24)
             make.height.equalTo(44)
         }

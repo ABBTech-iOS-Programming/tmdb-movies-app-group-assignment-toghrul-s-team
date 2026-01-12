@@ -60,6 +60,7 @@ final class WatchlistVC: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: animated)
+        vm.fetchMovies()
     }
     private func setupUI() {
         view.backgroundColor = UIColor(named: "bgColor")
