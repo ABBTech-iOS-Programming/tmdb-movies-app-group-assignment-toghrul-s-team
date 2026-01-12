@@ -52,14 +52,16 @@ final class WatchlistVC: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+    
         bindVM()
+        vm.fetchMovies()
+        
     }
-
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
         vm.fetchMovies()
     }
-
     private func setupUI() {
         view.backgroundColor = UIColor(named: "bgColor")
         backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
@@ -79,10 +81,10 @@ final class WatchlistVC: UIViewController {
     }
 
     private func addSubviews() {
-        view.addSubview(backButton)
-        view.addSubview(titleLabel)
-        view.addSubview(tableView)
-        view.addSubview(emptyStateView)
+        [backButton,
+        titleLabel,
+        tableView,
+         emptyStateView].forEach(view.addSubview)
     }
 
     private func setupConstraints() {

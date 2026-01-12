@@ -64,16 +64,28 @@ final class SearchVC: UIViewController {
         searchBar.delegate = self
         addSubViews()
         setupConstraints()
+        closeKeyboardTapGesture()
     }
 
     private func addSubViews() {
-        view.addSubview(searchBar)
-        view.addSubview(defaultLabel)
-        view.addSubview(emptyStateView)
-        view.addSubview(searchTableView)
-        view.addSubview(spinner)
+        [searchBar,
+         defaultLabel,
+         emptyStateView,
+         searchTableView,
+         spinner].forEach(view.addSubview)
     }
-
+    
+    private func  closeKeyboardTapGesture(){
+        let tap = UITapGestureRecognizer(
+            target: self,
+            action: #selector(dismissKeyboard)
+        )
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    @objc private func dismissKeyboard() {
+        view.endEditing(true)
+    }
     private func setupConstraints() {
         searchBar.snp.makeConstraints { make in
             make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(12)

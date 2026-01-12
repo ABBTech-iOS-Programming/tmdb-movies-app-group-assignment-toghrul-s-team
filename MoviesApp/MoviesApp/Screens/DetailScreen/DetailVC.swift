@@ -37,13 +37,13 @@ final class DetailVC: UIViewController {
     private let scrollView: UIScrollView = {
         let sv = UIScrollView()
         sv.showsVerticalScrollIndicator = false
-        
+
         return sv
     }()
 
     private let contentView: UIView = {
         let v = UIView()
-        
+
         return v
     }()
 
@@ -142,8 +142,12 @@ final class DetailVC: UIViewController {
     }
 
     private func addSubviews() {
-        view.addSubview(scrollView)
-        scrollView.addSubview(contentView)
+        [scrollView,
+         backButton,
+         topTitleLabel,
+         bookmarkButton,
+         spinner].forEach(view.addSubview)
+
         [
             backdropImageView,
             posterImageView,
@@ -151,13 +155,11 @@ final class DetailVC: UIViewController {
             metaLabel,
             ratingLabel,
             segmented,
-            aboutLabel, reviewsTableView
+            aboutLabel,
+            reviewsTableView
         ].forEach { contentView.addSubview($0) }
 
-        view.addSubview(backButton)
-        view.addSubview(topTitleLabel)
-        view.addSubview(bookmarkButton)
-        view.addSubview(spinner)
+        scrollView.addSubview(contentView)
     }
 
     private func setupConstraints() {
@@ -181,7 +183,6 @@ final class DetailVC: UIViewController {
         scrollView.snp.makeConstraints {
             $0.horizontalEdges.bottom.equalToSuperview()
             $0.top.equalToSuperview().offset(110)
-            
         }
 
         contentView.snp.makeConstraints {

@@ -42,8 +42,24 @@ final class MainTabBarController: UITabBarController {
     private func setupAppearance() {
         tabBar.tintColor = UIColor(named: "activeColor")
         tabBar.unselectedItemTintColor = UIColor(named: "tintColor")
-        tabBar.backgroundColor = UIColor(named: "bgColor")
         tabBar.isTranslucent = false
+
+        let appearance = UITabBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = UIColor(named: "bgColor")
+
+        let itemAppearance = UITabBarItemAppearance()
+        itemAppearance.normal.iconColor = UIColor(named: "tintColor")
+        itemAppearance.normal.titleTextAttributes = [
+            .foregroundColor: UIColor(named: "tintColor") ?? .gray
+        ]
+        itemAppearance.selected.iconColor = UIColor(named: "activeColor")
+        itemAppearance.selected.titleTextAttributes = [
+            .foregroundColor: UIColor(named: "activeColor") ?? .systemBlue
+        ]
+
+        tabBar.standardAppearance = appearance
+        tabBar.scrollEdgeAppearance = appearance
     }
 
     private func addTopSeparator() {
